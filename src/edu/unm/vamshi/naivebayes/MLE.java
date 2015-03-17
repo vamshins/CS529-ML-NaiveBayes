@@ -5,11 +5,30 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class MLE {
+	
+	public static HashSet<Integer> getDocIDs(String trainlabelpath) throws IOException {
+		BufferedReader br = null;
+		int docID = 0;
+		HashSet<Integer> docIdset = new HashSet<Integer>();
 
-	public static HashMap<Integer, String> countDocumentLabels(String trainLabelFile) throws IOException {
+		br = new BufferedReader(new FileReader(trainlabelpath));
+
+		while ((br.readLine()) != null) {
+			docID++;
+			
+			docIdset.add(docID);
+
+		}
+
+		br.close();
+		return docIdset;
+	}
+
+	public static HashMap<Integer, String> getDocumentLabels(String trainLabelFile) throws IOException {
 		BufferedReader br = null;
 		String Yk;
 		int docID = 0;
@@ -49,5 +68,4 @@ public class MLE {
 		}
 		trainLabelsListMap.get(value).add(key);
 	}
-
 }
