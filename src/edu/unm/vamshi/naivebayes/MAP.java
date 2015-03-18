@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class MAP {
 
@@ -79,22 +82,24 @@ public class MAP {
 		}		
 	}
 
-	// entry 1: countOfXiInYk		- wordId, (Yk, count)   -- (Yk, count) -> entry3
-	// entry 2: trainLabelsCountMap	- Yk, Count
+	// countOfXiInYk		- wordId, (Yk, count)
+	// trainLabelsCountMap	- Yk, Count
 	
 	// MAP for P(X|Y)
 	// P(Xi/Yk)=(count of Xi in Yk)+(alpha-1)(total words in Yk)+((alpha-1)*(length of vocab list)))
+	
+	// return (wordId, count, pXiYk)
 	public static HashMap<String, HashMap<String, Double>> calculatePXibyYk(HashMap<String, HashMap<String, Integer>> countOfXiInYk, HashMap<String, Integer> trainLabelsCountMap, double alpha, int vocabularyCount) {
 		HashMap<String, HashMap<String, Double>> pXiYk_trainMap = new HashMap<String, HashMap<String, Double>>();
 		
 		double pXiYk;
-		for(Map.Entry<String, HashMap<String, Integer>> entry1 : countOfXiInYk.entrySet()){
-			for(Map.Entry<String, Integer> entry2 : trainLabelsCountMap.entrySet()){
-				for(Map.Entry<String, Integer> entry3 : entry1.getValue().entrySet()){
-					if(entry3.getKey().equals(entry2.getKey())){
-						pXiYk = (entry3.getValue() + alpha - 1 )/(entry2.getValue() + ((alpha - 1) * vocabularyCount));
-						addToMap2(pXiYk_trainMap, entry1.getKey(), entry3.getKey(), pXiYk);
-//						System.out.println("wordId : " + entry1.getKey() + " Yk : " + entry3.getKey() + " pXiYk : " + pXiYk);
+		for(Map.Entry<String, HashMap<String, Integer>> countOfXiInYkEntry1 : countOfXiInYk.entrySet()){
+			for(Map.Entry<String, Integer> trainLabelsCountMapEntry1 : trainLabelsCountMap.entrySet()){
+				for(Map.Entry<String, Integer> countOfXiInYkEntry2 : countOfXiInYkEntry1.getValue().entrySet()){
+					if(countOfXiInYkEntry2.getKey().equals(trainLabelsCountMapEntry1.getKey())){
+						pXiYk = (countOfXiInYkEntry2.getValue() + alpha - 1 )/(trainLabelsCountMapEntry1.getValue() + ((alpha - 1) * vocabularyCount));
+						addToMap2(pXiYk_trainMap, countOfXiInYkEntry1.getKey(), countOfXiInYkEntry2.getKey().toString(), pXiYk);
+//						System.out.println("wordId : " + countOfXiInYkEntry1.getKey() + " count : " + countOfXiInYkEntry2.getKey() + " pXiYk : " + pXiYk);
 					}
 				}
 			}
@@ -103,12 +108,12 @@ public class MAP {
 		return pXiYk_trainMap;
 	}
 
-	private static void addToMap2(HashMap<String, HashMap<String, Double>> pXiYk_trainMap, String wordId, String Yk, double pXiYk) {
+	private static void addToMap2(HashMap<String, HashMap<String, Double>> pXiYk_trainMap, String wordId, String count, double pXiYk) {
 
 		if (!pXiYk_trainMap.containsKey(wordId)) {
 			pXiYk_trainMap.put(wordId, new HashMap<String, Double>());
 		} else {
-			pXiYk_trainMap.get(wordId).put(Yk, pXiYk);
+			pXiYk_trainMap.get(wordId).put(count, pXiYk);
 		}		
 	}
 	
@@ -119,10 +124,31 @@ public class MAP {
 	// Ynew=argmax[ log2(P(Yk))+(sum over i)(# of Xnewi)log2(P(Xi|Yk))]
 	public static HashMap<String, String> calculatePYkbyDocId(HashMap<String, HashMap<String, Double>> pXiYk_trainMap, HashMap<String, HashMap<String, String>> trainDataMap, HashMap<String, Double> pYk_trainLabelsMle, HashSet<Integer> docIdset) {
 		HashMap<String, String> pYkDocId_trainMap = new HashMap<String, String>();
-		double Ynew;
+//		HashMap<String, HashMap<String, String>> docIdWordIdCount
+		
+		for(Map.Entry<String, HashMap<String, String>> trainDataMapEntry1: trainDataMap.entrySet()){
+//			System.out.println("Current DocId : " + trainDataMapEntry1.getKey());
+			for(Map.Entry<String, String> trainDataMapEntry2 : trainDataMapEntry1.getValue().entrySet()){
+				for(Entry<String, HashMap<String, Double>> pXiYk_trainMapEntry1 : pXiYk_trainMap.entrySet()){
+					if(trainDataMapEntry2.getKey().equals(pXiYk_trainMapEntry1.getKey())){
+						for(Map.Entry<String, Double> pXiYk_trainMapEntry2 : pXiYk_trainMapEntry1.getValue().entrySet()){
+//							addToMap3(pXiYk_trainMap, countOfXiInYkEntry1.getKey(), countOfXiInYkEntry2.getKey().toString(), pXiYk);
+							System.out.println("docId : " + trainDataMapEntry1.getKey() +
+									" WordIdPxy : " + pXiYk_trainMapEntry1.getKey() +
+									" WordIdt : " + trainDataMapEntry2.getKey() +
+									" count : " + trainDataMapEntry2.getValue() +
+									" pXiYk : " + pXiYk_trainMapEntry2.getValue());
+						}
+					}
+				}
+			}
+		}
+		
+		/*double Ynew;
 		ArrayList<Double> Yall = new ArrayList<Double>();
 		
 		for(Integer docId : docIdset){
+			Ynew = 0;
 			for(Map.Entry<String, HashMap<String, String>> trainDataMapEntry1 : trainDataMap.entrySet()){
 				if(trainDataMapEntry1.getKey().equals(docId)){ // comparing docId in (docId, wordId, count) with docId (set)
 					for(Map.Entry<String, String> trainDataMapEntry2 : trainDataMapEntry1.getValue().entrySet()){
@@ -131,17 +157,23 @@ public class MAP {
 								if(pXiYk_trainMapEntry1.getKey().equals(trainDataMapEntry2.getKey())){
 									for(Map.Entry<String, Double> pYk_trainLabelsMleEntry : pYk_trainLabelsMle.entrySet()){
 										if(pYk_trainLabelsMleEntry.getKey().equals(pXiYk_trainMapEntry2.getKey())){
-											Ynew = log(pYk_trainLabelsMleEntry.getValue()) + (trainDataMapEntry2.getValue()) *
+											Ynew = Ynew + log(pYk_trainLabelsMleEntry.getValue()) + (Integer.parseInt(trainDataMapEntry2.getValue())) * log(pXiYk_trainMapEntry2.getValue());
 										}
 									}
 								}
 							}
-						}						
+						}
 					}
 				}
+				Yall.add(Ynew);
 			}
-		}
+			pYkDocId_trainMap.put(docId.toString(), Collections.max(Yall).toString());
+		}*/
 		
 		return pYkDocId_trainMap;
+	}
+
+	private static double log(Double value) {
+		return Math.log(value)/Math.log(2);
 	}
 }

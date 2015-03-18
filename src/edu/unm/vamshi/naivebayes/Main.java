@@ -27,11 +27,9 @@ public class Main {
 			trainLabelsMap = MLE.getDocumentLabels(paths.getTrainlabelpath());
 			trainLabelsCountMap = MLE.countTrainLabelsMap(trainLabelsMap);
 
-			// # of docs labeled Yk
-			// total # of docs
 			for (Map.Entry<String, Integer> entry : trainLabelsCountMap.entrySet()) {
-				System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
-				trainLabelsTotalCount += entry.getValue();
+				System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue()); // # of docs labeled Yk
+				trainLabelsTotalCount += entry.getValue(); // total # of docs
 			}
 
 			System.out.println("Train Label Count: " + trainLabelsTotalCount);
@@ -64,7 +62,7 @@ public class Main {
 				}
 			}*/
 			
-			// wordId, Yk, pXiYk
+			// wordId, count, pXiYk
 			HashMap<String, HashMap<String, Double>> pXiYk_trainMap = new HashMap<String, HashMap<String, Double>>();
 			
 			pXiYk_trainMap = MAP.calculatePXibyYk(countOfXiInYk, trainLabelsCountMap, alpha, vocabularyCount);
@@ -75,10 +73,14 @@ public class Main {
 				}
 			}*/
 			
-			// docId, Yk
+			// docId, YkNew
 			HashMap<String, String> pYkDocId_trainMap = new HashMap<String, String>();
 			
 			pYkDocId_trainMap = MAP.calculatePYkbyDocId(pXiYk_trainMap, trainDataMap, pYk_trainLabelsMle, docIdset);
+			
+			for (Map.Entry<String, String> entry : pYkDocId_trainMap.entrySet()) {
+				System.out.println("docId : " + entry.getKey() + " value : " + entry.getValue());
+			}
 			
 			
 		} catch (IOException e) {
