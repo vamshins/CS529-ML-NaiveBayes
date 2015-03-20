@@ -38,7 +38,6 @@ public class MLE {
 
 		while ((Yk = br.readLine()) != null) {
 			docID++;
-			System.out.println(docID + " - " + Yk);
 
 			trainLabelsMap.put(docID, Yk);
 
@@ -48,7 +47,7 @@ public class MLE {
 		return trainLabelsMap;
 	}
 
-	public static HashMap<String, Integer> countTrainLabelsMap(HashMap<Integer, String> trainLabelsMap) {
+	public static HashMap<String, Integer> countTrainLabels(HashMap<Integer, String> trainLabelsMap) {
 		HashMap<String, ArrayList<String>> trainLabelsListMap = new HashMap<String, ArrayList<String>>();
 		HashMap<String, Integer> trainLabelsCountMap = new HashMap<String, Integer>();
 		for (Map.Entry<Integer, String> entry : trainLabelsMap.entrySet()) {
@@ -62,7 +61,6 @@ public class MLE {
 	}
 
 	public static void addToMap(HashMap<String, ArrayList<String>> trainLabelsListMap, String key, String value) {
-		System.out.println("Key : " + key + " Value : " + value);
 		if (!trainLabelsListMap.containsKey(value)) {
 			trainLabelsListMap.put(value, new ArrayList<String>());
 		}
