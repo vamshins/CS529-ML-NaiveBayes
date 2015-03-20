@@ -374,7 +374,8 @@ public class MAP {
 			
 			docIdYkResults.put(docId, max);			
 			docCount--;
-			System.out.println("Iterations left : " + docCount);
+			if(docCount % 500 == 0)
+				System.out.println("        -> Iterations left : " + docCount);
 		}
 		
 		return docIdYkResults;

@@ -53,7 +53,7 @@ public class MLE {
 		for (Map.Entry<Integer, String> entry : trainLabelsMap.entrySet()) {
 			addToMap(trainLabelsListMap, entry.getKey().toString(), entry.getValue());			
 		}
-		System.out.println("------------");
+
 		for (Map.Entry<String, ArrayList<String>> entry : trainLabelsListMap.entrySet()) {
 			trainLabelsCountMap.put(entry.getKey(), entry.getValue().size());
 		}

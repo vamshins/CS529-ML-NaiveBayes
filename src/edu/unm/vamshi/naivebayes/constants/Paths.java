@@ -13,8 +13,6 @@ public class Paths {
 	private String testlabelpath;
 	private String testdatapath;
 	
-
-	
 	Properties prop = new Properties();
 	InputStream input = null;
 
@@ -22,60 +20,31 @@ public class Paths {
 		return vocabularypath;
 	}
 
-	public void setVocabularypath(String vocabularypath) {
-		this.vocabularypath = vocabularypath;
-	}
-
 	public String getNewsgrouplabelspath() {
 		return newsgrouplabelspath;
-	}
-
-	public void setNewsgrouplabelspath(String newsgrouplabelspath) {
-		this.newsgrouplabelspath = newsgrouplabelspath;
 	}
 
 	public String getTrainlabelpath() {
 		return trainlabelpath;
 	}
 
-	public void setTrainlabelpath(String trainlabelpath) {
-		this.trainlabelpath = trainlabelpath;
-	}
-
 	public String getTraindatapath() {
 		return traindatapath;
-	}
-
-	public void setTraindatapath(String traindatapath) {
-		this.traindatapath = traindatapath;
 	}
 
 	public String getTestlabelpath() {
 		return testlabelpath;
 	}
 
-	public void setTestlabelpath(String testlabelpath) {
-		this.testlabelpath = testlabelpath;
-	}
-
 	public String getTestdatapath() {
 		return testdatapath;
 	}
 
-	public void setTestdatapath(String testdatapath) {
-		this.testdatapath = testdatapath;
-	}
-
-	private static Paths singletonPaths = new Paths();
-
-	/*
-	 * A private Constructor prevents any other class from instantiating.
-	 */
-	private Paths() {
+	public Paths(String propertiesFilePath) {
 		try {
-//			input = new FileInputStream("C:/Users/Vamshi/Documents/cs529_ml/NaiveBayes/src/resources/project.properties");
-			input = new FileInputStream("C:/Users/Vamshi/Documents/cs529_ml/NaiveBayes/src/resources/project.properties");
-			// load a properties file
+			System.out.println("Properties File: " + propertiesFilePath);
+			input = new FileInputStream(propertiesFilePath);
+			// load properties file
 			prop.load(input);
 			
 			vocabularypath = prop.getProperty("vocabularypath");
@@ -88,10 +57,5 @@ public class Paths {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	/* Static 'instance' method */
-	public static Paths getInstance() {
-		return singletonPaths;
 	}
 }
