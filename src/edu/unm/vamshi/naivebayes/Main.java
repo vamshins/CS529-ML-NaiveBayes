@@ -2,7 +2,13 @@ package edu.unm.vamshi.naivebayes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -17,6 +23,7 @@ public class Main {
 		System.out.println("Starting the application...");
 		System.out.println("-----------------------------------------------------------------------------------------------");
 		int trainLabelsTotalCount = 11269;
+		int testLabelsTotalCount = 7505;
 		int vocabularyCount = 61188;
 		double beta;
 		if(args.length == 1){
@@ -24,28 +31,38 @@ public class Main {
 		}
 		else{
 			System.out.println("Beta value is not provided. Taking default value i.e., 1.0/vocabularyCount");
-			beta = 1.0 / vocabularyCount; // 1.0000163430738054
+			beta = 1.0 / vocabularyCount; // 0.0000163430738054
 		}
 		System.out.println("    -> beta value : " + beta);
 		
 		try {
+			System.out.println("train.label count : " + trainLabelsTotalCount);
+			System.out.println("test.label count  :" + testLabelsTotalCount);
+			System.out.println("vocabularyCount count : " + vocabularyCount);
 			
+			// Get the train.label contents in the matrix [DocId, Yk]
+			System.out.println("Getting the train.label contents in the matrix [DocId, Yk]...");
 			HashMap<Integer, String> trainLabelsMap; // (docID, Yk) // train.label
 			trainLabelsMap = MLE.getDocumentLabels((new File("data/train.label")).getAbsolutePath());
+			System.out.println("    -> completed!");
 			
+			// Get the test.label contents in the matrix [DocId, Yk]
+			System.out.println("Getting the test.label contents in the matrix [DocId, Yk]...");
 			HashMap<Integer, String> testLabelsMap; // (docID, Yk) // test.label
 			testLabelsMap = MLE.getDocumentLabels((new File("data/test.label")).getAbsolutePath());
-
+			System.out.println("    -> completed!");
+			
+			// Calculate Yk counts into the matrix [Yk, Count]...
+			System.out.println("Calculating Yk counts...");
 			HashMap<String, Integer> trainLabelsCount; // (Yk, Count) 
 			trainLabelsCount = MLE.countTrainLabels(trainLabelsMap);
-
-			System.out.println("Train Label Count: " + trainLabelsTotalCount);
+			System.out.println("    -> completed!");
 
 			double pYk;
 
 			HashMap<String, Double> pYk_trainLabelsMle = new HashMap<String, Double>(); // (Yk, pYk)
 			
-			// P(Yk) = (# of docs labeled Yk)/(total # of docs)
+			// Calculate Priors using P(Yk) = (# of docs labeled Yk)/(total # of docs)
 			System.out.println("Calculating Priors (pYk)...");
 			for (Map.Entry<String, Integer> entry : trainLabelsCount.entrySet()) {
 //				System.out.println("Key : " + entry.getKey() + " Value : " + entry.getValue());
@@ -56,12 +73,12 @@ public class Main {
 			
 //			System.out.println("pYk_trainLabelsMle : " + pYk_trainLabelsMle);
 
-			System.out.println("Loading train.data file into the application...");						
+			System.out.println("Loading train.data file into the application in the matrix (docId, wordId, count)...");						
 			HashMap<String, HashMap<String, String>> trainDataMap = new HashMap<String, HashMap<String,String>>(); // (docId, wordId, count) 
 			trainDataMap = MAP.populateTrainDataMap((new File("data/train.data")).getAbsolutePath());
 			System.out.println("    -> Loaded train.data file!");
 			
-			System.out.println("Loading test.data file into the application...");
+			System.out.println("Loading test.data file into the application in the matrix (docId, wordId, count)...");
 			HashMap<String, HashMap<String, String>> testDataMap = new HashMap<String, HashMap<String,String>>(); // (docId, wordId, count) 
 			testDataMap = MAP.populateTrainDataMap((new File("data/test.data")).getAbsolutePath());
 			System.out.println("    -> Loaded test.data file!");
@@ -134,7 +151,7 @@ public class Main {
 			}
 			System.out.println("    -> completed");
 			
-			System.out.println("\nAccuracy of classification of test labels: " + (double)correctlyClassifiedLabels/7505);
+			System.out.println("\nAccuracy of classification of test labels: " + ((double)correctlyClassifiedLabels/7505)*100 + " %");
 			
 			System.out.println("\nPrinting Confusion Matrix : \n");
 			for (int j = 0; j < 20; j++) {
@@ -144,9 +161,73 @@ public class Main {
 				System.out.println();
 			}
 			
+			System.out.println("Loading vocabulary.txt into the application...");
+			HashMap<Integer, String> vocabularyMap = new HashMap<Integer, String>();
+			vocabularyMap = MAP.loadVocabulary((new File("data/vocabulary.txt")).getAbsolutePath());			
+			System.out.println("    -> completed");
+			
+			double pxiyk = 0;
+			double argmaxPxiyk = 0;
+			HashMap <String, Double> row;
+			HashMap<Integer, Double> hm = new HashMap<Integer, Double>();
+			System.out.println();
+			System.out.println("Printing top 100 words with highest measure...");
+			// Printing top 100 words with highest measure
+			// wordId, Yk, pXiYk
+			for (int p = 1; p <= 61188; p++) {
+				row = pXiYk_trainMap.get(String.valueOf(p));
+				for (int q = 1; q <= 20; q++) {
+					pxiyk = row.get(String.valueOf(q));
+					if(q==1){
+						argmaxPxiyk=pxiyk;
+					}
+					if (argmaxPxiyk < pxiyk) {
+						argmaxPxiyk = pxiyk;
+					}
+				}
+				hm.put(p, argmaxPxiyk);
+			}
+//			System.out.println(hm);
+			
+			// sort the map by values in descending order.
+			Map<Integer, Double> sortedMap = sortByComparator(hm);
+			
+			// printing the top 100 words in the map.
+			int count=100;
+			for (Entry<Integer, Double> sortedMapEntry : sortedMap.entrySet()) {
+				if(count==0)
+					break;
+				System.out.print(vocabularyMap.get(sortedMapEntry.getKey()) + " ");
+				count--;
+			}
+			
 			System.out.println("\n\nExecution completed! Exiting the application.");
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
 		}
 	}
+	
+	private static Map<Integer, Double> sortByComparator(Map<Integer, Double> unsortMap) {
+		 
+		// Convert Map to List
+		List<Map.Entry<Integer, Double>> list = 
+			new LinkedList<Map.Entry<Integer, Double>>(unsortMap.entrySet());
+ 
+		// Sort list with comparator, to compare the Map values
+		Collections.sort(list, new Comparator<Map.Entry<Integer, Double>>() {
+			public int compare(Map.Entry<Integer, Double> o1,
+                                           Map.Entry<Integer, Double> o2) {
+				return (o2.getValue()).compareTo(o1.getValue());
+			}
+		});
+ 
+		// Convert sorted map back to a Map
+		Map<Integer, Double> sortedMap = new LinkedHashMap<Integer, Double>();
+		for (Iterator<Map.Entry<Integer, Double>> it = list.iterator(); it.hasNext();) {
+			Entry<Integer, Double> entry = it.next();
+			sortedMap.put(entry.getKey(), entry.getValue());
+		}
+		return sortedMap;
+	}
+ 
 }

@@ -384,4 +384,22 @@ public class MAP {
 	private static double log2(Double value) {
 		return Math.log(value)/Math.log(2);
 	}
+
+	public static HashMap<Integer, String> loadVocabulary(String vocabularyTxtPath) throws IOException {
+		BufferedReader br = null;
+		int docID = 0;
+		HashMap<Integer, String> vocabularyMap = new HashMap<Integer, String>();
+		String str;
+		br = new BufferedReader(new FileReader(vocabularyTxtPath));
+
+		while ((str = br.readLine()) != null) {
+			docID++;
+			
+			vocabularyMap.put(docID, str);
+
+		}
+
+		br.close();
+		return vocabularyMap;
+	}
 }
